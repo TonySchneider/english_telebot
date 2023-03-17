@@ -240,7 +240,7 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
         self.clean_chat(chat_id)
         if delete_status:
             self.send_message(chat_id, self.dictionary['word_deleted_successfully'].format(en_word=en_word))
-            if user.word_sender_active and user.num_of_words < 4:
+            if user.word_sender_active and user.num_of_words < self.MIN_WORDS_PER_USER:
                 self.send_message(chat_id, self.dictionary['automatic_words_sender_has_stopped'].format(
                     num_of_words=user.num_of_words))
         else:
