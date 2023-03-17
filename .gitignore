@@ -127,3 +127,11 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Chat IDS:
+chat_ids.txt
+
+# idea folder
+.idea
+
+configurations/allowed_chat_ids.yaml
