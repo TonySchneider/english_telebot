@@ -1,7 +1,11 @@
 English Telebot
 ================
 
-This is a simple Telegram bot that provides English language practice exercises for learners. It can be used to improve grammar, vocabulary, and reading comprehension skills.
+English Telebot is a Telegram bot created by Tony Schneider that provides English language practice exercises for learners. The bot offers various types of exercises, including multiple choice, fill-in-the-blank, and true/false questions.
+
+One of the main features of English Telebot is its ability to provide immediate feedback on users' answers, allowing for quick and effective learning. The bot also has a database of questions and answers that can be easily updated and personalized progress tracking for each user.
+
+English Telebot is written in Python and uses the Telegram Bot API to interact with users. The instructions for installation and usage are provided in the repository, along with the requirements for running the bot.
 
 Features
 --------
