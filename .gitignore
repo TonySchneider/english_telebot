@@ -135,3 +135,5 @@ chat_ids.txt
 .idea
 
 configurations/allowed_chat_ids.yaml
+
+temp.py

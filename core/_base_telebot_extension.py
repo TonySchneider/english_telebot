@@ -12,7 +12,7 @@ logger = get_logger(__file__)
 
 class BaseTelebotExtension(TeleBot):
 
-    def __init__(self, token: str):
+    def __init__(self, token: str, *args, **kwargs):
         super().__init__(token)
         self.token = token
 

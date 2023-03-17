@@ -1,6 +1,7 @@
 import time
 
 from helpers.loggers import get_logger
+
 from core.word_sender import WordSender
 
 logger = get_logger(__file__)
@@ -8,21 +9,44 @@ logger = get_logger(__file__)
 
 class EnglishBotUser:
     active_users = {}
+    db_connector = None
+    global_bot = None
 
     @staticmethod
     def get_user_by_chat_id(chat_id: int):
         return EnglishBotUser.active_users.get(chat_id)
 
-    def __init__(self, chat_id: int, db_connector, global_bot, word_sender_active: bool = False, delay_time: int = 20,
+    @staticmethod
+    def load_users_and_global_instances(global_bot, db_connector):
+        logger.debug(f"Setting global instances...")
+        EnglishBotUser.db_connector = db_connector
+        EnglishBotUser.global_bot = global_bot
+
+        logger.debug(f"Loading existing users from DB...")
+        fetched_users = db_connector.get_all_values_by_field(table_name='users_extended')
+        for user in fetched_users:
+            user_translations = db_connector.get_all_values_by_field(table_name='translations',
+                                                                     condition_field='chat_id',
+                                                                     condition_value=user['chat_id'])
+            EnglishBotUser.active_users[user['chat_id']] = EnglishBotUser(chat_id=user['chat_id'],
+                                                                          word_sender_active=eval(
+                                                                              user['auto_send_active']),
+                                                                          delay_time=user['delay_time'],
+                                                                          user_translations=user_translations)
+
+    @staticmethod
+    def new_user(chat_id):
+        EnglishBotUser(chat_id=chat_id)
+        EnglishBotUser.db_connector.insert_row(table_name='users', keys_values={'chat_id': chat_id})
+
+    def __init__(self, chat_id: int, word_sender_active: bool = False, delay_time: int = 20,
                  user_translations: list = None):
         self.chat_id = chat_id
         self.word_sender = None
         self.messages = []
         self.word_sender_active = word_sender_active
-        self.global_bot = global_bot
         self.delay_time = delay_time
         self.user_translations = self.convert_db_translation_into_a_dict(user_translations) if user_translations else {}
-        self.db_connector = db_connector
         self.word_sender_paused = False
 
         EnglishBotUser.active_users[chat_id] = self
@@ -71,7 +95,7 @@ class EnglishBotUser:
                 break
 
             try:
-                self.global_bot.send_new_word(self.chat_id)
+                EnglishBotUser.global_bot.send_new_word(self.chat_id)
             # TODO: change this exception to something better
             except Exception as e:
                 logger.debug(f"Got exception - {e}")

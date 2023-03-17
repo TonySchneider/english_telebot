@@ -1,3 +1,4 @@
+import time
 import random
 from typing import Mapping
 
@@ -15,8 +16,8 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
     MIN_WORDS_PER_USER = 4
     MAX_WORDS_PER_USER = 100
 
-    def __init__(self, token: str):
-        super(EnglishBotTelebotExtension, self).__init__(token)
+    def __init__(self, token: str, *args, **kwargs):
+        super(EnglishBotTelebotExtension, self).__init__(token, *args, **kwargs)
         self.word_sender = None
 
     def show_menu(self, chat_id):
@@ -271,3 +272,154 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
         for chat_id, active_user in EnglishBotUser.active_users.items():
             active_user.close()
             self.clean_chat(chat_id)
+
+    def init_handlers(self):
+        @self.callback_query_handler(func=lambda call: True)
+        def handle_query(call):
+            chat_id = call.message.chat.id
+            current_user: "EnglishBotUser" = EnglishBotUser.get_user_by_chat_id(chat_id)
+
+            data = call.data
+            if data.startswith("menu:"):
+                button_id = data.replace('menu:', '')
+                if not current_user.is_locked():
+                    if button_id == '1':
+                        if current_user.num_of_words >= self.MAX_WORDS_PER_USER:
+                            self.clean_chat(chat_id)
+                            self.send_message(chat_id, 'הגעת לכמות מילים המקסימלית שניתן להוסיף (100 מילים).')
+                        else:
+                            self.pause_user_word_sender(chat_id)
+                            self.clean_chat(chat_id)
+
+                            callback_msg = self.send_message(chat_id, 'שלח את המילה החדשה')
+                            self.register_next_step_handler(callback_msg, self.add_new_word_to_db)
+                    elif button_id == '2':
+                        current_sender_status = current_user.word_sender_active
+                        if not current_sender_status:
+                            if current_user.num_of_words >= self.MIN_WORDS_PER_USER:
+                                current_user.activate_word_sender()
+                                self.send_message(chat_id, 'שליחת המילים האוטומטית הופעלה')
+                            else:
+                                self.send_message(chat_id, 'לא נוספו 4 מילים')
+                        elif current_sender_status:
+                            current_user.deactivate_word_sender()
+                            self.send_message(chat_id, 'שליחת המילים האוטומטית הופסקה')
+                    elif button_id == '3':
+                        self.pause_user_word_sender(chat_id)
+                        self.clean_chat(chat_id)
+
+                        self.show_word_ranges(chat_id)
+                    elif button_id == '4':
+                        self.pause_user_word_sender(chat_id)
+
+                        callback_msg = self.send_message(chat_id, 'שלח מספר דקות לשינוי זמן ההמתנה')
+                        self.register_next_step_handler(callback_msg, self.change_waiting_time)
+                    elif button_id == '5':
+                        self.pause_user_word_sender(chat_id)
+                        self.clean_chat(chat_id)
+
+                        self.show_existing_words_to_practice(chat_id)
+                    elif button_id == '6':
+                        self.send_message(chat_id, 'מה אתה צריך????!!')
+                else:
+                    logger(f"The user trying to press on button {button_id} but the chat is locked")
+
+            elif data.startswith("c:"):
+                logger.debug(f"comparison words for '{chat_id}'")
+
+                button_callback = data.replace('c:', '')
+                he_word, chosen_he_word = button_callback.split('|')
+
+                self.clean_chat(chat_id)
+                prefix = f' המילה הבאה תישלח בעוד {current_user.delay_time} דקות.'
+
+                if he_word == chosen_he_word:
+                    self.send_message(chat_id, f'נכון, כל הכבוד.' + prefix)
+                    time.sleep(1)
+                else:
+                    self.send_message(chat_id, f'טעות, התרגום הנכון זה - "{he_word}."' + prefix)
+                    time.sleep(1)
+
+                self.resume_user_word_sender(chat_id)
+
+            elif data.startswith("range_words:"):
+                button_callback = data.replace('range_words:', '')
+
+                self.clean_chat(chat_id)
+                self.show_wordlist(chat_id, eval(button_callback))
+
+            elif data.startswith("delete_word:"):
+                button_callback = data.replace('delete_word:', '')
+                chosen_word, last_menu_range = button_callback.split('|')
+                self.delete_word(chat_id, chosen_word)
+
+                self.show_wordlist(chat_id, eval(last_menu_range))
+
+            elif data.startswith("exit-to-main-menu"):
+                self.clean_chat(chat_id)
+
+                self.show_menu(chat_id)
+                self.resume_user_word_sender(chat_id)
+
+            elif data.startswith("exit-to-word-range"):
+                self.clean_chat(chat_id)
+
+                self.show_word_ranges(chat_id)
+
+        @self.message_handler(commands=['start'])
+        def start_the_bot(message):
+            chat_id = message.chat.id
+            current_user: "EnglishBotUser" = EnglishBotUser.get_user_by_chat_id(chat_id)
+
+            if current_user:
+                current_user.messages.append(message.message_id)
+                self.show_menu(chat_id)
+            else:
+                EnglishBotUser.new_user(chat_id)
+
+                self.show_menu(chat_id)
+                self.send_message(chat_id, 'אנא הוסף לפחות 4 מילים על מנת שהמערכת תוכל להתחיל לשלוח מילים בצורה אוטומטית')
+
+        @self.message_handler(commands=['priorities'])
+        def new_word_command(message):
+            chat_id = message.chat.id
+            current_user: "EnglishBotUser" = EnglishBotUser.get_user_by_chat_id(chat_id)
+
+            if current_user:
+                current_user.messages.append(message.message_id)
+
+            if not current_user.is_locked():
+                self.clean_chat(chat_id)
+                self.show_existing_words_with_their_priorities(chat_id)
+
+        @self.message_handler(commands=['send'])
+        def new_word_command(message):
+            chat_id = message.chat.id
+            current_user: "EnglishBotUser" = EnglishBotUser.get_user_by_chat_id(chat_id)
+
+            if current_user:
+                current_user.messages.append(message.message_id)
+
+            if not current_user.is_locked():
+                self.send_new_word(message.chat.id)
+
+        @self.message_handler(commands=['menu'])
+        def new_word_command(message):
+            chat_id = message.chat.id
+            current_user: "EnglishBotUser" = EnglishBotUser.get_user_by_chat_id(chat_id)
+
+            if current_user:
+                current_user.messages.append(message.message_id)
+
+            if not current_user.is_locked():
+                self.clean_chat(chat_id)
+                self.show_menu(chat_id)
+
+        @self.message_handler(func=lambda message: message.text)
+        def catch_every_user_message(message):
+            logger.debug(f"catching user message ({message.text})")
+            chat_id = message.chat.id
+            current_user: "EnglishBotUser" = EnglishBotUser.get_user_by_chat_id(chat_id)
+
+            if current_user:
+                current_user.messages.append(message.message_id)
