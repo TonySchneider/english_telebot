@@ -1,3 +1,47 @@
 menu: "תפריט"
-vocabulary_limit: "הגעת לכמות מילים המקסימלית שניתן להוסיף (100 מילים)."
+back_to_main_menu: "חזרה לתפריט הראשי"
+back_to_previous_menu: "חזרה לתפריט הקודם"
+menu_options:
+  1: "הוסף מילה חדשה"
+  2: "הפעל/עצור שליחה אוטומטית"
+  3: "רשימת מילים ואפשרות מחיקה"
+  4: "שנה זמן המתנה בין מילים"
+  5: "הצג רשימת מילים לשינון"
+  6: "עזרה"
+choose_word_list: "בחר באחת הרשימות:"
+help_message: "מה אתה צריך????!!"
+the_words_list: "רשימת המילים:"
+words_list: "רשימת מילים"
+must_add_4_words_before_statring: "אנא הוסף לפחות 4 מילים על מנת שהמערכת תוכל להתחיל לשלוח מילים בצורה אוטומטית"
 
+# new word
+word_input_error: "המילה צריכה להכיל רק אותיות ולהיות לא יותר מ45 תווים"
+word_already_added: "המילה {new_word} כבר קיימת במערכת."
+added_successfully: "המילה {new_word} נוספה בהצלחה. תרגום המילה: {he_words}"
+maximum_words_exceeded: "הגעת לכמות מילים המקסימלית שניתן להוסיף ({max_words_per_user} מילים)."
+send_new_word: "שלח את המילה החדשה"
+unable_add_new_word: "המערכת לא הצליחה להוסיף את המילה המבוקשת, שאל את המפתחים"
+no_translate_found: "המערכת לא הצליחה למצוא תרגום למילה המבוקשת"
+
+# exersice
+choose_translation: "בחר את התרגום של {chosen_en_word}"
+
+# delete word
+word_deleted_successfully: "המילה {en_word} נמחקה בהצלחה"
+automatic_words_sender_has_stopped: "שליחת המילים האוטומטית הופסקה, מספר המילים לא מספיקה ({num_of_words})"
+word_deletion_failed: "המערכת נתקלה בתקלה, המילה המבוקשת לא נמחקה."
+
+# automatic sender
+automatic_word_sender_stopped: "שליחת המילים האוטומטית הופסקה"
+automatic_word_sender_started: "שליחת המילים האוטומטית הופעלה"
+not_enough_words_to_start: "לא נוספו {min_words_per_user} מילים"
+
+# delay time
+send_a_new_delay_time: "שלח מספר דקות לשינוי זמן ההמתנה"
+delay_time_changed_successfully: "'זמן ההמתנה שונה ל-{new_time} דקות'"
+unable_change_delay_time: "המערכת לא הצליחה לשנות את זמן ההמתנה"
+
+# word comparison result message
+next_word_eta: "המילה הבאה תישלח בעוד {delay_time} דקות."
+correct_choice: "נכון, כל הכבוד."
+wrong_choice: "טעות, התרגום הנכון זה - {he_word}."

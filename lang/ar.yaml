@@ -1,0 +1,47 @@
+menu: "القائمة"
+back_to_main_menu: "الرجوع إلى القائمة الرئيسية"
+back_to_previous_menu: "الرجوع إلى القائمة السابقة"
+menu_options:
+  1: "إضافة كلمة جديدة"
+  2: "تفعيل / إيقاف الإرسال التلقائي"
+  3: "قائمة الكلمات وخيار الحذف"
+  4: "تغيير وقت الانتظار بين الكلمات"
+  5: "عرض قائمة الكلمات للتعديل"
+  6: "مساعدة"
+choose_word_list: "اختر إحدى القوائم:"
+help_message: "ماذا تحتاج؟"
+the_words_list: "قائمة الكلمات:"
+words_list: "قائمة الكلمات"
+must_add_4_words_before_statring: "يرجى إضافة 4 كلمات على الأقل لتمكين النظام من البدء في إرسال الكلمات تلقائيًا"
+
+# new word
+word_input_error: "يجب أن تحتوي الكلمة على أحرف فقط ولا يزيد طولها عن 45 حرفًا"
+word_already_added: "الكلمة {new_word} مضافة بالفعل في النظام."
+added_successfully: "تمت إضافة الكلمة {new_word} بنجاح. ترجمة الكلمة: {he_words}"
+maximum_words_exceeded: "لقد وصلت إلى الحد الأقصى لعدد الكلمات التي يمكن للمستخدم إضافتها ({max_words_per_user} كلمات)."
+send_new_word: "إرسال كلمة جديدة"
+unable_add_new_word: "فشل النظام في إضافة الكلمة المطلوبة ، يرجى الاتصال بفريق المطورين"
+no_translate_found: "فشل النظام في العثور على ترجمة للكلمة المطلوبة"
+
+# exersice
+choose_translation: "اختر ترجمة {chosen_en_word}"
+
+# delete word
+word_deleted_successfully: "تم حذف الكلمة {en_word} بنجاح"
+automatic_words_sender_has_stopped: "تم إيقاف إرسال الكلمات التلقائي، لا يوجد عدد كافي من الكلمات ({num_of_words})"
+word_deletion_failed: "حدث خطأ في النظام، لم يتم حذف الكلمة المطلوبة."
+
+# automatic sender
+automatic_word_sender_stopped: "تم إيقاف إرسال الكلمات التلقائي"
+automatic_word_sender_started: "تم بدء إرسال الكلمات التلقائي"
+not_enough_words_to_start: "لم يتم إضافة {min_words_per_user} كلمات على الأقل"
+
+# delay time
+send_a_new_delay_time: "أرسل عدد الدقائق لتغيير وقت الانتظار"
+delay_time_changed_successfully: "تم تغيير وقت الانتظار إلى {new_time} دقائق"
+unable_change_delay_time: "لم تتمكن النظام من تغيير وقت الانتظار"
+
+# word comparison result message
+next_word_eta: "سيتم إرسال الكلمة التالية خلال {delay_time} دقائق."
+correct_choice: "صحيح، عمل رائع."
+wrong_choice: "خطأ، الترجمة الصحيحة هي - {he_word}."

@@ -2,7 +2,6 @@ import os
 import sys
 
 from helpers.loggers import get_logger
-from helpers.multiple_languages import load_dictionary
 
 from core.english_bot_user import EnglishBotUser
 from core.english_bot_telebot_extension import EnglishBotTelebotExtension
@@ -22,8 +21,6 @@ except KeyError:
 
 bot = EnglishBotTelebotExtension(TOKEN)
 db_connector = DBWrapper(host=MYSQL_HOST, mysql_user=MYSQL_USER, mysql_pass=MYSQL_PASS, database='english_bot')
-
-dictionary = load_dictionary(lang="he")
 
 
 if __name__ == '__main__':

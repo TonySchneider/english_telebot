@@ -3,8 +3,10 @@ import random
 from typing import Mapping
 
 from helpers.loggers import get_logger
-from core.english_bot_user import EnglishBotUser
 from helpers.translations import get_translations
+from helpers.multiple_languages import load_dictionary
+
+from core.english_bot_user import EnglishBotUser
 from core._base_telebot_extension import BaseTelebotExtension
 
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
@@ -16,21 +18,19 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
     MIN_WORDS_PER_USER = 4
     MAX_WORDS_PER_USER = 100
 
-    def __init__(self, token: str, *args, **kwargs):
+    def __init__(self, token: str, lang: str = "he", *args, **kwargs):
+        """
+        :param token: Telegram API Token
+        :param lang: Default language is Hebrew.
+        """
         super(EnglishBotTelebotExtension, self).__init__(token, *args, **kwargs)
         self.word_sender = None
+        self.dictionary = load_dictionary(lang=lang)
 
     def show_menu(self, chat_id):
         logger.debug(f"showing menu for '{chat_id}'")
 
-        menu_buttons = {
-            '1': 'הוסף מילה חדשה',
-            '2': 'הפעל/עצור שליחה אוטומטית',
-            '3': 'רשימת מילים ואפשרות מחיקה',
-            '4': 'שנה זמן המתנה בין מילים',
-            '5': 'הצג רשימת מילים לשינון',
-            '6': 'עזרה'
-        }
+        menu_buttons = self.dictionary['menu_options']
 
         reply_markup = InlineKeyboardMarkup()
         options = [InlineKeyboardButton(button_text, callback_data=f'menu:{button_id}') for button_id, button_text in
@@ -39,7 +39,7 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
         for option in options:
             reply_markup.row(option)
 
-        self.send_message(chat_id, "תפריט", reply_markup=reply_markup)
+        self.send_message(chat_id, self.dictionary['menu'], reply_markup=reply_markup)
 
     def show_wordlist(self, chat_id, word_range: list):
         logger.debug(f"showing wordlist for '{chat_id}'")
@@ -57,9 +57,9 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
         for button_index in range(len(words_buttons)):
             reply_markup.row(words_buttons[button_index], cross_icon_buttons[button_index])
 
-        reply_markup.row(InlineKeyboardButton("חזרה לתפריט הקודם", callback_data=f'exit-to-word-range'))
+        reply_markup.row(InlineKeyboardButton(self.dictionary['back_to_previous_menu'], callback_data=f'exit-to-word-range'))
 
-        self.send_message(chat_id, "רשימת המילים:", reply_markup=reply_markup)
+        self.send_message(chat_id, self.dictionary['the_words_list'], reply_markup=reply_markup)
 
     def show_existing_words_to_practice(self, chat_id):
         table = "```\n"
@@ -69,7 +69,7 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
         table += "```\n"
 
         reply_markup = InlineKeyboardMarkup()
-        reply_markup.row(InlineKeyboardButton("חזרה לתפריט הראשי", callback_data=f'exit-to-main-menu'))
+        reply_markup.row(InlineKeyboardButton(self.dictionary['back_to_main_menu'], callback_data=f'exit-to-main-menu'))
 
         self.send_message(chat_id, table, reply_markup=reply_markup, parse_mode='MarkdownV2')
 
@@ -81,7 +81,7 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
         table += "```\n"
 
         reply_markup = InlineKeyboardMarkup()
-        reply_markup.row(InlineKeyboardButton("חזרה לתפריט הראשי", callback_data=f'exit-to-main-menu'))
+        reply_markup.row(InlineKeyboardButton(self.dictionary['back_to_main_menu'], callback_data=f'exit-to-main-menu'))
 
         self.send_message(chat_id, table, reply_markup=reply_markup, parse_mode='MarkdownV2')
 
@@ -95,29 +95,29 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
         ranges = [[start, start + divide_by] for start in range(0, len(en_words), divide_by)]
         ranges[-1][1] -= (divide_by - len(en_words) % divide_by)
 
-        ranges_buttons = [InlineKeyboardButton(f" {en_words[words_range[0]][:1]}-{en_words[words_range[1] - 1][:1]} רשימת מילים ",
+        ranges_buttons = [InlineKeyboardButton(self.dictionary['words_list'] +
+                                               f" {en_words[words_range[0]][:1]}-{en_words[words_range[1] - 1][:1]} ",
                                                callback_data=f'range_words:{words_range}') for words_range in ranges]
         reply_markup = InlineKeyboardMarkup()
         for button_index in range(len(ranges_buttons)):
             reply_markup.row(ranges_buttons[button_index])
 
-        reply_markup.row(InlineKeyboardButton("חזרה לתפריט הראשי", callback_data=f'exit-to-main-menu'))
+        reply_markup.row(InlineKeyboardButton(self.dictionary['back_to_main_menu'], callback_data=f'exit-to-main-menu'))
 
         logger.debug(f"showing words ranges for '{chat_id}'")
-        self.send_message(chat_id, "בחר באחת הרשימות:", reply_markup=reply_markup)
+        self.send_message(chat_id, self.dictionary['choose_word_list'], reply_markup=reply_markup)
 
-    @staticmethod
-    def assertions_before_addition_a_new_word(new_word: str, user: EnglishBotUser):
+    def assertions_before_addition_a_new_word(self, new_word: str, user: EnglishBotUser):
         result_message = None
         if new_word in user.user_translations.keys():
-            result_message = f'המילה {new_word} כבר קיימת במערכת.'
+            result_message = self.dictionary['word_already_added'].format(new_word=new_word)
 
         try:
             assert new_word
             assert new_word.replace(' ', '').isalpha()
             assert len(new_word) < 46
         except AssertionError:
-            result_message = 'המילה צריכה להכיל רק אותיות ולהיות לא יותר מ45 תווים'
+            result_message = self.dictionary['word_input_error']
 
         return result_message
 
@@ -144,7 +144,7 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
         translations = [{'en_word': new_word, 'he_word': translation,
                          'chat_id': chat_id} for translation in extracted_translations]
         if not translations:
-            self.send_message(chat_id, 'המערכת לא הצליחה למצוא תרגום למילה המבוקשת')
+            self.send_message(chat_id, self.dictionary['no_translate_found'])
             return
 
         insertion_status = user.update_translations(translations)
@@ -153,9 +153,9 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
 
         if insertion_status:
             he_words = ", ".join([item['he_word'] for item in translations])
-            self.send_message(chat_id, f'המילה {new_word} נוספה בהצלחה. תרגום המילה: {he_words}')
+            self.send_message(chat_id, self.dictionary['added_successfully'].format(he_words=he_words, new_word=new_word))
         else:
-            self.send_message(chat_id, 'המערכת לא הצליחה להוסיף את המילה המבוקשת, שאל את המפתחים')
+            self.send_message(chat_id, self.dictionary['unable_add_new_word'])
 
         self.resume_user_word_sender(chat_id)
 
@@ -177,12 +177,13 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
             self.clean_chat(chat_id)
             update_status = user.update_delay_time(new_time)
             if update_status:
-                self.send_message(chat_id, f'זמן ההמתנה שונה ל-{new_time} דקות')
+                self.send_message(chat_id, self.dictionary['delay_time_changed_successfully'].format(new_time=new_time))
             else:
-                self.send_message(chat_id, 'המערכת לא הצליחה לשנות את זמן ההמתנה')
+                self.send_message(chat_id, self.dictionary['unable_change_delay_time'])
         except AssertionError as e:
             logger.error(
-                f"There was an assertion error. Error - '{e}'. | method - 'change_waiting_time' | message.text - '{new_time}'")
+                f"There was an assertion error. Error - '{e}'. | method - 'change_waiting_time' | message.text - "
+                f"'{new_time}'")
         finally:
             self.resume_user_word_sender(chat_id)
 
@@ -222,7 +223,8 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
 
         self.clean_chat(chat_id)
 
-        self.send_message(chat_id, f'בחר את התרגום של {chosen_en_word}', reply_markup=reply_markup)
+        self.send_message(chat_id, self.dictionary['choose_translation'].format(chosen_en_word=chosen_en_word),
+                          reply_markup=reply_markup)
         logger.debug(f"sent word '{chosen_en_word}' to chat id - '{chat_id}'")
 
         # increase usage of the chosen word
@@ -237,12 +239,12 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
 
         self.clean_chat(chat_id)
         if delete_status:
-            self.send_message(chat_id, f"המילה {en_word} נמחקה בהצלחה")
+            self.send_message(chat_id, self.dictionary['word_deleted_successfully'].format(en_word=en_word))
             if user.word_sender_active and user.num_of_words < 4:
-                self.send_message(chat_id,
-                                  f'שליחת המילים האוטומטית הופסקה, מספר המילים לא מספיקה ({user.num_of_words})')
+                self.send_message(chat_id, self.dictionary['automatic_words_sender_has_stopped'].format(
+                    num_of_words=user.num_of_words))
         else:
-            self.send_message(chat_id, "המערכת נתקלה בתקלה, המילה המבוקשת לא נמחקה.")
+            self.send_message(chat_id, self.dictionary['word_deletion_failed'])
 
     def infinity_polling(self, **kwargs):
         active_users: "Mapping[int, EnglishBotUser]" = EnglishBotUser.active_users
@@ -286,24 +288,26 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
                     if button_id == '1':
                         if current_user.num_of_words >= self.MAX_WORDS_PER_USER:
                             self.clean_chat(chat_id)
-                            self.send_message(chat_id, 'הגעת לכמות מילים המקסימלית שניתן להוסיף (100 מילים).')
+                            self.send_message(chat_id, self.dictionary['maximum_words_exceeded'].format(
+                                max_words_per_user=self.MAX_WORDS_PER_USER))
                         else:
                             self.pause_user_word_sender(chat_id)
                             self.clean_chat(chat_id)
 
-                            callback_msg = self.send_message(chat_id, 'שלח את המילה החדשה')
+                            callback_msg = self.send_message(chat_id, self.dictionary['send_new_word'])
                             self.register_next_step_handler(callback_msg, self.add_new_word_to_db)
                     elif button_id == '2':
                         current_sender_status = current_user.word_sender_active
                         if not current_sender_status:
                             if current_user.num_of_words >= self.MIN_WORDS_PER_USER:
                                 current_user.activate_word_sender()
-                                self.send_message(chat_id, 'שליחת המילים האוטומטית הופעלה')
+                                self.send_message(chat_id, self.dictionary['automatic_word_sender_started'])
                             else:
-                                self.send_message(chat_id, 'לא נוספו 4 מילים')
+                                self.send_message(chat_id, self.dictionary['not_enough_words_to_start'].format(
+                                    min_words_per_user=self.MIN_WORDS_PER_USER))
                         elif current_sender_status:
                             current_user.deactivate_word_sender()
-                            self.send_message(chat_id, 'שליחת המילים האוטומטית הופסקה')
+                            self.send_message(chat_id, self.dictionary['automatic_word_sender_stopped'])
                     elif button_id == '3':
                         self.pause_user_word_sender(chat_id)
                         self.clean_chat(chat_id)
@@ -312,7 +316,7 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
                     elif button_id == '4':
                         self.pause_user_word_sender(chat_id)
 
-                        callback_msg = self.send_message(chat_id, 'שלח מספר דקות לשינוי זמן ההמתנה')
+                        callback_msg = self.send_message(chat_id, self.dictionary['send_a_new_delay_time'])
                         self.register_next_step_handler(callback_msg, self.change_waiting_time)
                     elif button_id == '5':
                         self.pause_user_word_sender(chat_id)
@@ -320,7 +324,7 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
 
                         self.show_existing_words_to_practice(chat_id)
                     elif button_id == '6':
-                        self.send_message(chat_id, 'מה אתה צריך????!!')
+                        self.send_message(chat_id, self.dictionary['help_message'])
                 else:
                     logger(f"The user trying to press on button {button_id} but the chat is locked")
 
@@ -331,13 +335,13 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
                 he_word, chosen_he_word = button_callback.split('|')
 
                 self.clean_chat(chat_id)
-                prefix = f' המילה הבאה תישלח בעוד {current_user.delay_time} דקות.'
+                prefix = self.dictionary['next_word_eta'].format(delay_time=current_user.delay_time)
 
                 if he_word == chosen_he_word:
-                    self.send_message(chat_id, f'נכון, כל הכבוד.' + prefix)
+                    self.send_message(chat_id, self.dictionary['correct_choice'] + prefix)
                     time.sleep(1)
                 else:
-                    self.send_message(chat_id, f'טעות, התרגום הנכון זה - "{he_word}."' + prefix)
+                    self.send_message(chat_id, self.dictionary['wrong_choice'].format(he_word=he_word) + prefix)
                     time.sleep(1)
 
                 self.resume_user_word_sender(chat_id)
@@ -378,7 +382,7 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
                 EnglishBotUser.new_user(chat_id)
 
                 self.show_menu(chat_id)
-                self.send_message(chat_id, 'אנא הוסף לפחות 4 מילים על מנת שהמערכת תוכל להתחיל לשלוח מילים בצורה אוטומטית')
+                self.send_message(chat_id, self.dictionary['must_add_4_words_before_statring'])
 
         @self.message_handler(commands=['priorities'])
         def new_word_command(message):

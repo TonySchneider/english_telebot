@@ -1,0 +1,47 @@
+menu: "Меню"
+back_to_main_menu: "Вернуться в главное меню"
+back_to_previous_menu: "Вернуться к предыдущему меню"
+menu_options:
+  1: "Добавить новое слово"
+  2: "Включить/выключить автоматическую отправку"
+  3: "Список слов и возможность удаления"
+  4: "Изменить время ожидания между словами"
+  5: "Показать список слов для повторения"
+  6: "Помощь"
+choose_word_list: "Выберите один из списков:"
+help_message: "Чем я могу Вам помочь?"
+the_words_list: "Список слов:"
+words_list: "Список слов"
+must_add_4_words_before_statring: "Пожалуйста, добавьте как минимум 4 слова, чтобы система могла начать отправлять слова автоматически"
+
+# new word
+word_input_error: "Слово должно содержать только буквы и быть не длиннее 45 символов"
+word_already_added: "Слово {new_word} уже добавлено в систему."
+added_successfully: "Слово {new_word} успешно добавлено. Перевод слова: {he_words}"
+maximum_words_exceeded: "Вы достигли максимального количества слов ({max_words_per_user} слов)."
+send_new_word: "Отправить новое слово"
+unable_add_new_word: "Системе не удалось добавить запрашиваемое слово, обратитесь к разработчикам"
+no_translate_found: "Система не смогла найти перевод для запрашиваемого слова"
+
+# exersice
+choose_translation: "Выберите перевод для слова {chosen_en_word}"
+
+# delete word
+word_deleted_successfully: "Слово {en_word} успешно удалено"
+automatic_words_sender_has_stopped: "Автоматическая отправка слов остановлена, количество слов недостаточно ({num_of_words})"
+word_deletion_failed: "Система столкнулась с ошибкой, запрашиваемое слово не было удалено."
+
+# automatic sender
+automatic_word_sender_stopped: "Автоматическая отправка слов остановлена"
+automatic_word_sender_started: "Автоматическая отправка слов запущена"
+not_enough_words_to_start: "Не добавлено достаточное количество слов ({min_words_per_user})"
+
+# delay time
+send_a_new_delay_time: "Введите количество минут для изменения времени ожидания"
+delay_time_changed_successfully: "Время ожидания изменено на {new_time} минут"
+unable_change_delay_time: "Системе не удалось изменить время ожидания"
+
+# word comparison result message
+next_word_eta: "Следующее слово будет отправлено через {delay_time} минут(ы)."
+correct_choice: "Верно, молодец."
+wrong_choice: "Неверно, правильный перевод - {he_word}."
