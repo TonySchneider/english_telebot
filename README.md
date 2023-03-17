@@ -29,7 +29,7 @@ To use the English Telebot, follow these steps:
 4. Create a file named `config.py` in the root directory of the project with the following content:
 Replace `your_bot_token_here` with the API token you obtained from the BotFather. TOKEN = 'your_bot_token_here'
 
-5. Run the bot: `python bot.py`
+5. Run the bot: `python runner.py`
 
 Usage
 -----
