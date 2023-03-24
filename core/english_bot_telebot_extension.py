@@ -138,13 +138,23 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
             self.resume_user_word_sender(chat_id)
             return
 
-        extracted_translations = get_translations(new_word)
+        try:
+            extracted_translations = get_translations(new_word)
+        except AttributeError:
+            logger.error(f"Couldn't get translation by the following english word: {new_word}")
+            self.clean_chat(chat_id)
+            self.send_message(chat_id, self.dictionary['unable_add_new_word'])
+            self.resume_user_word_sender(chat_id)
+            return
+
         logger.debug(f"Got these translations - '{extracted_translations}' for the word '{new_word}'")
 
         translations = [{'en_word': new_word, 'he_word': translation,
                          'chat_id': chat_id} for translation in extracted_translations]
         if not translations:
+            self.clean_chat(chat_id)
             self.send_message(chat_id, self.dictionary['no_translate_found'])
+            self.resume_user_word_sender(chat_id)
             return
 
         insertion_status = user.update_translations(translations)
@@ -418,6 +428,18 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
             if not current_user.is_locked():
                 self.clean_chat(chat_id)
                 self.show_menu(chat_id)
+
+        # @self.message_handler(commands=['add'])
+        # def new_word_command(message):
+        #     chat_id = message.chat.id
+        #     current_user: "EnglishBotUser" = EnglishBotUser.get_user_by_chat_id(chat_id)
+        #
+        #     if current_user:
+        #         current_user.messages.append(message.message_id)
+        #
+        #     if not current_user.is_locked():
+        #         self.clean_chat(chat_id)
+        #         self.show_menu(chat_id)
 
         @self.message_handler(func=lambda message: message.text)
         def catch_every_user_message(message):

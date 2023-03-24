@@ -20,7 +20,7 @@ word_already_added: "המילה {new_word} כבר קיימת במערכת."
 added_successfully: "המילה {new_word} נוספה בהצלחה. תרגום המילה: {he_words}"
 maximum_words_exceeded: "הגעת לכמות מילים המקסימלית שניתן להוסיף ({max_words_per_user} מילים)."
 send_new_word: "שלח את המילה החדשה"
-unable_add_new_word: "המערכת לא הצליחה להוסיף את המילה המבוקשת, שאל את המפתחים"
+unable_add_new_word: "המערכת לא הצליחה להוסיף את המילה המבוקשת, נסה שנית מאוחר יותר."
 no_translate_found: "המערכת לא הצליחה למצוא תרגום למילה המבוקשת"
 
 # exersice
