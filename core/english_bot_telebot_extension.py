@@ -65,7 +65,7 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
         table = "```\n"
 
         for en_word, details in sorted(EnglishBotUser.get_user_by_chat_id(chat_id).user_translations.items()):
-            table += f"{en_word}" + " - " + f"{'/'.join(details['he_words'])}\n"
+            table += f"{en_word}" + " - " + f"{'/'.join(details['translated_words'])}\n"
         table += "```\n"
 
         reply_markup = InlineKeyboardMarkup()
@@ -149,7 +149,7 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
 
         logger.debug(f"Got these translations - '{extracted_translations}' for the word '{new_word}'")
 
-        translations = [{'en_word': new_word, 'he_word': translation,
+        translations = [{'en_word': new_word, 'translated_word': translation,
                          'chat_id': chat_id} for translation in extracted_translations]
         if not translations:
             self.clean_chat(chat_id)
@@ -162,8 +162,8 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
         self.clean_chat(chat_id)
 
         if insertion_status:
-            he_words = ", ".join([item['he_word'] for item in translations])
-            self.send_message(chat_id, self.dictionary['added_successfully'].format(he_words=he_words, new_word=new_word))
+            translated_words = ", ".join([item['translated_word'] for item in translations])
+            self.send_message(chat_id, self.dictionary['added_successfully'].format(translated_words=translated_words, new_word=new_word))
         else:
             self.send_message(chat_id, self.dictionary['unable_add_new_word'])
 
@@ -205,7 +205,7 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
         chosen_en_word = random.choices(en_words, weights=priorities, k=1)[0]
         en_words.remove(chosen_en_word)
 
-        chosen_he_word = random.choice(user.user_translations[chosen_en_word]['he_words'])
+        chosen_translated_word = random.choice(user.user_translations[chosen_en_word]['translated_words'])
 
         additional_random_en_words = []
         while len(additional_random_en_words) < 3:
@@ -213,20 +213,20 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
             if current_random_choice not in additional_random_en_words:
                 additional_random_en_words.append(current_random_choice)
 
-        random_he_words = []
+        random_translated_words = []
         while additional_random_en_words:
             current_en_word = additional_random_en_words.pop()
-            current_random_he_word = random.choice(user.user_translations[current_en_word]['he_words'])
-            random_he_words.append(current_random_he_word)
+            current_random_translated_word = random.choice(user.user_translations[current_en_word]['translated_words'])
+            random_translated_words.append(current_random_translated_word)
 
-        random_he_words.append(chosen_he_word)
+        random_translated_words.append(chosen_translated_word)
 
-        random.shuffle(random_he_words)
+        random.shuffle(random_translated_words)
 
         reply_markup = InlineKeyboardMarkup()
-        options = [InlineKeyboardButton(button_he_word,
-                                        callback_data=f'c:{chosen_he_word}|{button_he_word}') for
-                   button_he_word in random_he_words]
+        options = [InlineKeyboardButton(button_translated_word,
+                                        callback_data=f'c:{chosen_translated_word}|{button_translated_word}') for
+                   button_translated_word in random_translated_words]
 
         for option in options:
             reply_markup.row(option)
@@ -279,8 +279,6 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
         active_users[chat_id].resume_sender()
 
     def close(self):
-        # TODO: check regarding the stop forcing
-
         for chat_id, active_user in EnglishBotUser.active_users.items():
             active_user.close()
             self.clean_chat(chat_id)
@@ -295,6 +293,8 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
             if data.startswith("menu:"):
                 button_id = data.replace('menu:', '')
                 if not current_user.is_locked():
+
+                    # Add new english word
                     if button_id == '1':
                         if current_user.num_of_words >= self.MAX_WORDS_PER_USER:
                             self.clean_chat(chat_id)
@@ -306,6 +306,8 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
 
                             callback_msg = self.send_message(chat_id, self.dictionary['send_new_word'])
                             self.register_next_step_handler(callback_msg, self.add_new_word_to_db)
+
+                    # Start / stop automatic exercises sender
                     elif button_id == '2':
                         current_sender_status = current_user.word_sender_active
                         if not current_sender_status:
@@ -318,50 +320,58 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
                         elif current_sender_status:
                             current_user.deactivate_word_sender()
                             self.send_message(chat_id, self.dictionary['automatic_word_sender_stopped'])
+
+                    # Word list & remove method
                     elif button_id == '3':
                         self.pause_user_word_sender(chat_id)
                         self.clean_chat(chat_id)
-
                         self.show_word_ranges(chat_id)
+
+                    # Change waiting time
                     elif button_id == '4':
                         self.pause_user_word_sender(chat_id)
-
                         callback_msg = self.send_message(chat_id, self.dictionary['send_a_new_delay_time'])
                         self.register_next_step_handler(callback_msg, self.change_waiting_time)
+
+                    # Word list just for practise
                     elif button_id == '5':
                         self.pause_user_word_sender(chat_id)
                         self.clean_chat(chat_id)
-
                         self.show_existing_words_to_practice(chat_id)
+
+                    # Help button
                     elif button_id == '6':
                         self.send_message(chat_id, self.dictionary['help_message'])
                 else:
                     logger(f"The user trying to press on button {button_id} but the chat is locked")
 
+            # Words comparison
             elif data.startswith("c:"):
                 logger.debug(f"comparison words for '{chat_id}'")
 
                 button_callback = data.replace('c:', '')
-                he_word, chosen_he_word = button_callback.split('|')
+                translated_word, chosen_translated_word = button_callback.split('|')
 
                 self.clean_chat(chat_id)
                 prefix = self.dictionary['next_word_eta'].format(delay_time=current_user.delay_time)
 
-                if he_word == chosen_he_word:
+                if translated_word == chosen_translated_word:
                     self.send_message(chat_id, self.dictionary['correct_choice'] + prefix)
                     time.sleep(1)
                 else:
-                    self.send_message(chat_id, self.dictionary['wrong_choice'].format(he_word=he_word) + prefix)
+                    self.send_message(chat_id, self.dictionary['wrong_choice'].format(translated_word=translated_word) + prefix)
                     time.sleep(1)
 
                 self.resume_user_word_sender(chat_id)
 
+            # Ranges list
             elif data.startswith("range_words:"):
                 button_callback = data.replace('range_words:', '')
 
                 self.clean_chat(chat_id)
                 self.show_wordlist(chat_id, eval(button_callback))
 
+            # Remove word request
             elif data.startswith("delete_word:"):
                 button_callback = data.replace('delete_word:', '')
                 chosen_word, last_menu_range = button_callback.split('|')
@@ -369,12 +379,14 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
 
                 self.show_wordlist(chat_id, eval(last_menu_range))
 
+            # Exit to main menu
             elif data.startswith("exit-to-main-menu"):
                 self.clean_chat(chat_id)
 
                 self.show_menu(chat_id)
                 self.resume_user_word_sender(chat_id)
 
+            # Return to previous menu
             elif data.startswith("exit-to-word-range"):
                 self.clean_chat(chat_id)
 
@@ -406,8 +418,8 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
                 self.clean_chat(chat_id)
                 self.show_existing_words_with_their_priorities(chat_id)
 
-        @self.message_handler(commands=['send'])
-        def new_word_command(message):
+        @self.message_handler(commands=['send_exercise'])
+        def exersice_request_command(message):
             chat_id = message.chat.id
             current_user: "EnglishBotUser" = EnglishBotUser.get_user_by_chat_id(chat_id)
 
@@ -418,7 +430,7 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
                 self.send_new_word(message.chat.id)
 
         @self.message_handler(commands=['menu'])
-        def new_word_command(message):
+        def menu_command(message):
             chat_id = message.chat.id
             current_user: "EnglishBotUser" = EnglishBotUser.get_user_by_chat_id(chat_id)
 
@@ -429,17 +441,18 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
                 self.clean_chat(chat_id)
                 self.show_menu(chat_id)
 
-        # @self.message_handler(commands=['add'])
-        # def new_word_command(message):
-        #     chat_id = message.chat.id
-        #     current_user: "EnglishBotUser" = EnglishBotUser.get_user_by_chat_id(chat_id)
-        #
-        #     if current_user:
-        #         current_user.messages.append(message.message_id)
-        #
-        #     if not current_user.is_locked():
-        #         self.clean_chat(chat_id)
-        #         self.show_menu(chat_id)
+        @self.message_handler(commands=['add'])
+        def new_word_command(message):
+            chat_id = message.chat.id
+            current_user: "EnglishBotUser" = EnglishBotUser.get_user_by_chat_id(chat_id)
+            current_user.messages.append(message.message_id)
+
+            if current_user:
+                current_user.messages.append(message.message_id)
+
+            if not current_user.is_locked():
+                self.clean_chat(chat_id)
+                self.show_menu(chat_id)
 
         @self.message_handler(func=lambda message: message.text)
         def catch_every_user_message(message):

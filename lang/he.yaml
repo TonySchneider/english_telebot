@@ -17,7 +17,7 @@ must_add_4_words_before_statring: "אנא הוסף לפחות 4 מילים על 
 # new word
 word_input_error: "המילה צריכה להכיל רק אותיות ולהיות לא יותר מ45 תווים"
 word_already_added: "המילה {new_word} כבר קיימת במערכת."
-added_successfully: "המילה {new_word} נוספה בהצלחה. תרגום המילה: {he_words}"
+added_successfully: "המילה {new_word} נוספה בהצלחה. תרגום המילה: {translated_words}"
 maximum_words_exceeded: "הגעת לכמות מילים המקסימלית שניתן להוסיף ({max_words_per_user} מילים)."
 send_new_word: "שלח את המילה החדשה"
 unable_add_new_word: "המערכת לא הצליחה להוסיף את המילה המבוקשת, נסה שנית מאוחר יותר."
@@ -44,4 +44,4 @@ unable_change_delay_time: "המערכת לא הצליחה לשנות את זמן
 # word comparison result message
 next_word_eta: "המילה הבאה תישלח בעוד {delay_time} דקות."
 correct_choice: "נכון, כל הכבוד."
-wrong_choice: "טעות, התרגום הנכון זה - {he_word}."
+wrong_choice: "טעות, התרגום הנכון זה - ״{translated_word}״."

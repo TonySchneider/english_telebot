@@ -60,10 +60,10 @@ class EnglishBotUser:
         trans_as_a_dict = {}
         for translation in translations:
             if translation['en_word'] in trans_as_a_dict.keys():
-                trans_as_a_dict[translation['en_word']]['he_words'].append(translation['he_word'])
+                trans_as_a_dict[translation['en_word']]['translated_words'].append(translation['translated_word'])
             else:
                 trans_as_a_dict[translation['en_word']] = {
-                    'he_words': [translation['he_word']],
+                    'translated_words': [translation['translated_word']],
                     'usages': 0
                 }
         return trans_as_a_dict
