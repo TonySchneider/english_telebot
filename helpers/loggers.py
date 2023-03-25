@@ -3,6 +3,8 @@ import os.path
 import platform
 from pathlib import Path
 from logging.config import dictConfig
+
+from configurations.project_config import ROOT_PROJECT_DIR
 from wrappers.config_wrapper import ConfigWrapper
 
 os_system = platform.system()
@@ -26,9 +28,9 @@ def disable_debug_mode_blocklist():
 def get_logger(logger_name):
     logging_config = ConfigWrapper().get_config_file("logging")
 
-    logs_directory = os.path.join('.', 'logs')
-    if not os.path.isdir(logs_directory):
-        logs_directory = '.' + logs_directory
+    logs_directory = os.path.join(ROOT_PROJECT_DIR, 'logs')
+    if not logs_directory:
+        os.mkdir(logs_directory)
 
     [keys.update({'filename': fr'{logs_directory}/{Path(logger_name).stem}-{handler.split("_")[0]}.log'})
      for handler, keys in logging_config['handlers'].items() if handler.endswith('handler')]

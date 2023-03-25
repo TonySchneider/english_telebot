@@ -5,21 +5,21 @@ import logging
 import platform
 from pathlib import Path
 
+from configurations.project_config import ROOT_PROJECT_DIR
+
 
 class ConfigWrapper:
     os_system = platform.system()
 
-    def __init__(self, load_folder: str = os.path.join('.', 'configurations')):
+    def __init__(self, configurations_folder: str = 'configurations'):
         """
         This class loads all our configurations yaml file and saves them as dictionary so we can use them quickly
         without open every time some configuration file.
         """
-        self.load_folder = load_folder
-        if not os.path.isdir(self.load_folder):
-            self.load_folder = '.' + self.load_folder
+        self.configurations_folder = os.path.join(ROOT_PROJECT_DIR, configurations_folder)
 
         self.file_list = [
-            f for f in Path(self.load_folder).iterdir() if f.is_file()
+            f for f in Path(self.configurations_folder).iterdir() if f.is_file()
         ]
         self.all_data = self.parse_all_yaml_files()
 
