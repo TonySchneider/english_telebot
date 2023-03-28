@@ -46,7 +46,7 @@ def get_translations(word):
 
 # if __name__ == '__main__':
 #     print(get_translations('despair'))
-
+#
     # sentence = """
 #     """
 #     print(translate_it(sentence, lang_from='ar', lang_to='he'))
