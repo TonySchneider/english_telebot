@@ -140,8 +140,8 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
 
         try:
             extracted_translations = get_translations(new_word)
-        except AttributeError:
-            logger.error(f"Couldn't get translation by the following english word: {new_word}")
+        except Exception as e:
+            logger.error(f"Couldn't get translation by the following english word: {new_word}. Error: {e}")
             self.clean_chat(chat_id)
             self.send_message(chat_id, self.dictionary['unable_add_new_word'])
             self.resume_user_word_sender(chat_id)

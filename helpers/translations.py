@@ -17,9 +17,10 @@ def translate_it(text: str, lang_from: str, lang_to: str):
     return trans_obj.text if trans_obj and hasattr(trans_obj, 'text') else None
 
 
-@retry(exceptions=AttributeError, tries=3, delay=3, jitter=2)
+@retry(exceptions=Exception, tries=3, delay=3, jitter=2)
 def get_translations(word):
     translator = Translator()
+    translator.raise_Exception = True
     trans_obj = translator.translate(word, dest='he')
 
     all_translations = trans_obj.extra_data.get('all-translations')
