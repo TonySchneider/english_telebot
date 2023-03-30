@@ -17,7 +17,7 @@ def translate_it(text: str, lang_from: str, lang_to: str):
     return trans_obj.text if trans_obj and hasattr(trans_obj, 'text') else None
 
 
-@retry(exceptions=Exception, tries=3, delay=3, jitter=2)
+# @retry(exceptions=Exception, tries=3, delay=3, jitter=2)
 def get_translations(word):
     translator = Translator()
     translator.raise_Exception = True
@@ -46,7 +46,7 @@ def get_translations(word):
 
 # if __name__ == '__main__':
 #     print(get_translations('despair'))
-#
+
     # sentence = """
-#     """
-#     print(translate_it(sentence, lang_from='ar', lang_to='he'))
+    # """
+    # print(translate_it(sentence, lang_from='ar', lang_to='he'))

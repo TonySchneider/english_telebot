@@ -3,6 +3,6 @@ pyTelegramBotAPI
 requests~=2.27.1
 retry~=0.9.2
 mysql-connector-python~=8.0.28
-googletrans==4.0.0-rc1
+googletrans==3.1.0a0
 Telethon~=1.24.0
 pathlib~=1.0.1
