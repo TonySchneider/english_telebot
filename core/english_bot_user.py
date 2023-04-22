@@ -180,13 +180,13 @@ class EnglishBotUser:
         translations_insertion_status = self.db_connector.insert_multiple_rows(table_name='translations',
                                                                                keys_values=translations)
 
-        usages_insertion_status = self.db_connector.insert_row(table_name='usages',
-                                                               keys_values={'en_word': translations[0]['en_word']})
+        # usages_insertion_status = self.db_connector.insert_row(table_name='usages',
+        #                                                        keys_values={'en_word': translations[0]['en_word']})
 
-        if translations_insertion_status and usages_insertion_status:
+        if translations_insertion_status:
             self.user_translations.update(self.convert_db_translation_into_a_dict(translations))
 
-        return translations_insertion_status and usages_insertion_status
+        return translations_insertion_status
 
     def close(self):
         if self.word_sender:

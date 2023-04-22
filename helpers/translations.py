@@ -21,7 +21,7 @@ def translate_it(text: str, lang_from: str, lang_to: str):
 def get_translations(word):
     translator = Translator()
     translator.raise_Exception = True
-    trans_obj = translator.translate(word, dest='he')
+    trans_obj = translator.translate(word, src='en', dest='he')
 
     all_translations = trans_obj.extra_data.get('all-translations')
     if not all_translations:
@@ -45,7 +45,7 @@ def get_translations(word):
 
 
 # if __name__ == '__main__':
-#     print(get_translations('despair'))
+#     print(get_translations('misuse'))
 
     # sentence = """
     # """

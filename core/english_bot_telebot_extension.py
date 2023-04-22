@@ -4,7 +4,7 @@ from typing import Mapping
 
 from helpers.loggers import get_logger
 from helpers.translations import get_translations
-from helpers.multiple_languages import load_dictionary
+from helpers.multiple_languages import load_dictionary, is_english
 
 from core.english_bot_user import EnglishBotUser
 from core._base_telebot_extension import BaseTelebotExtension
@@ -121,6 +121,18 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
 
         return result_message
 
+    def menu_command_add_a_new_word(self, user, chat_id):
+        if user.num_of_words >= self.MAX_WORDS_PER_USER:
+            self.clean_chat(chat_id)
+            self.send_message(chat_id, self.dictionary['maximum_words_exceeded'].format(
+                max_words_per_user=self.MAX_WORDS_PER_USER))
+        else:
+            self.pause_user_word_sender(chat_id)
+            self.clean_chat(chat_id)
+
+            callback_msg = self.send_message(chat_id, self.dictionary['send_new_word'])
+            self.register_next_step_handler(callback_msg, self.add_new_word_to_db)
+
     def add_new_word_to_db(self, message):
         chat_id = message.chat.id
         user = EnglishBotUser.get_user_by_chat_id(chat_id)
@@ -151,7 +163,7 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
 
         translations = [{'en_word': new_word, 'translated_word': translation,
                          'chat_id': chat_id} for translation in extracted_translations]
-        if not translations:
+        if not translations or is_english(extracted_translations[0]):
             self.clean_chat(chat_id)
             self.send_message(chat_id, self.dictionary['no_translate_found'])
             self.resume_user_word_sender(chat_id)
@@ -296,16 +308,7 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
 
                     # Add new english word
                     if button_id == '1':
-                        if current_user.num_of_words >= self.MAX_WORDS_PER_USER:
-                            self.clean_chat(chat_id)
-                            self.send_message(chat_id, self.dictionary['maximum_words_exceeded'].format(
-                                max_words_per_user=self.MAX_WORDS_PER_USER))
-                        else:
-                            self.pause_user_word_sender(chat_id)
-                            self.clean_chat(chat_id)
-
-                            callback_msg = self.send_message(chat_id, self.dictionary['send_new_word'])
-                            self.register_next_step_handler(callback_msg, self.add_new_word_to_db)
+                        self.menu_command_add_a_new_word(current_user, chat_id)
 
                     # Start / stop automatic exercises sender
                     elif button_id == '2':
@@ -451,8 +454,7 @@ class EnglishBotTelebotExtension(BaseTelebotExtension):
                 current_user.messages.append(message.message_id)
 
             if not current_user.is_locked():
-                self.clean_chat(chat_id)
-                self.show_menu(chat_id)
+                self.menu_command_add_a_new_word(current_user, chat_id)
 
         @self.message_handler(func=lambda message: message.text)
         def catch_every_user_message(message):
